@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Users,RendezVous } = require("../models");
+const { Users, RendezVous } = require("../models");
 const bcrypt = require("bcrypt");
 const { sign } = require("jsonwebtoken");
 
@@ -14,7 +14,8 @@ router.post("/", async (req, res) => {
             Adresse: Adresse,
             Sexe: Sexe,
             Num_Tel: Num_Tel,
-            Password: hash
+            Password: hash,
+            Role: 'user'
         })
             .then(() => {
                 res.json("SUCCESS");
@@ -30,36 +31,44 @@ router.get("/", async (req, res) => {
     res.json(listAllUsers);
 });
 
-
 router.post("/login", async (req, res) => {
     const { Num_Tel, password } = req.body;
+
+    // Check for admin credentials
+    if (Num_Tel === "admin" && password === "password123*") {
+        const accessToken = sign(
+            { Num_Tel: "admin", Role: "admin" },
+            "importantsecret"
+        );
+        return res.json({ token: accessToken, role: "admin" });
+    }
+
     const user = await Users.findOne({ where: { Num_Tel: Num_Tel } });
     if (!user) {
         return res.json({ error: "User Doesn't Exist" }); 
     }
+
     bcrypt.compare(password, user.Password).then((match) => {
         if (!match) {
             return res.json({ error: "Wrong Numero telephone And Password Combination" }); 
         }
         const accessToken = sign(
-            { Num_Tel: user.Num_Tel, Id_Patient: user.Id_Patient},
+            { Num_Tel: user.Num_Tel, Id_Patient: user.Id_Patient, Role: user.Role },
             "importantsecret"
         );
-        res.json(accessToken);
+        res.json({ token: accessToken, role: user.Role });
     });
 });
 
 router.delete("/:Id_Patient", async (req, res) => {
     try {
         const patientId = req.params.Id_Patient;
-        // Delete all appointments associated with the user
         await RendezVous.destroy({ where: { Id_Patient: patientId } });
-        // Delete the user
         const deletedUser = await Users.destroy({ where: { Id_Patient: patientId } });
         if (deletedUser === 0) {
             res.status(404).json({ error: 'User not found' });
         } else {
-            res.status(204).json(); // 204 No Content status code
+            res.status(204).json();
         }
     } catch (error) {
         console.error('Error deleting user:', error);

@@ -30,11 +30,15 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         unique: true,
       },
-      Password:{
-        type :DataTypes.STRING,
+      Password: {
+        type: DataTypes.STRING,
         allowNull: false,
+      },
+      Role: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'user'
       }
     });
     return Users;
   };
-  
