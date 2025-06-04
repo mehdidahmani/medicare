@@ -15,6 +15,20 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
     const CNS = req.body;
     try {
+        // Check if consultation already exists
+        const existingConsultation = await Consultations.findOne({
+            where: {
+                Id_Medcin: CNS.Id_Medcin,
+                Id_Heure: CNS.Id_Heure,
+                Date: CNS.Date,
+                Id_Patient: CNS.Id_Patient
+            }
+        });
+
+        if (existingConsultation) {
+            return res.status(400).json({ error: 'This appointment has already been consulted' });
+        }
+
         const newConsultation = await Consultations.create(CNS);
         res.json(newConsultation);
     } catch (error) {
