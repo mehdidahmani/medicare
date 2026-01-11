@@ -6,11 +6,14 @@ import * as Yup from 'yup';
 
 const GetEmergency = ({ visible, onClose ,accessToken}) => {
   const [medcins, setMedcins] = useState([]);
-  const [heures, setHeures] = useState([]);
+  const [allHeures, setAllHeures] = useState([]);
+  const [availableHeures, setAvailableHeures] = useState([]);
+  const [bookedAppointments, setBookedAppointments] = useState([]);
   const [error, setError] = useState("");
+  const [selectedDoctor, setSelectedDoctor] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
 
   useEffect(() => {
-    // Fetch medcins
     axios.get('http://localhost:3001/medcins')
       .then(response => {
         setMedcins(response.data);
@@ -19,22 +22,41 @@ const GetEmergency = ({ visible, onClose ,accessToken}) => {
         console.error('Error fetching medcins:', error);
       });
 
-    // Fetch heures
     axios.get('http://localhost:3001/heures')
       .then(response => {
-        setHeures(response.data);
+        setAllHeures(response.data);
+        setAvailableHeures(response.data);
       })
       .catch(error => {
         console.error('Error fetching heures:', error);
       });
 
-    // Fetch occupied heures
     axios.get('http://localhost:3001/rendezvous')
+      .then(response => {
+        setBookedAppointments(response.data);
+      })
       .catch(error => {
-        console.error('Error fetching occupied heures:', error);
+        console.error('Error fetching appointments:', error);
       });
-    
   }, []);
+
+  useEffect(() => {
+    if (selectedDoctor && selectedDate) {
+      const bookedHours = bookedAppointments
+        .filter(apt =>
+          apt.Id_Medcin == selectedDoctor &&
+          apt.Date === selectedDate
+        )
+        .map(apt => apt.Id_Heure);
+
+      const available = allHeures.filter(
+        heure => !bookedHours.includes(heure.Id_Heure)
+      );
+      setAvailableHeures(available);
+    } else {
+      setAvailableHeures(allHeures);
+    }
+  }, [selectedDoctor, selectedDate, allHeures, bookedAppointments]);
 
   const initialValues = {
     Id_Medcin: 1,
@@ -99,6 +121,7 @@ const GetEmergency = ({ visible, onClose ,accessToken}) => {
       )}
 
       <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={onSubmit}>
+        {({ values, setFieldValue }) => (
           <Form className="w-full max-w-md p-4 bg-white rounded-lg mx-auto mt-20">
             <img src={logoImage} alt="logo" className="w-28 h-auto mx-auto mb-8" />
 
@@ -109,6 +132,12 @@ const GetEmergency = ({ visible, onClose ,accessToken}) => {
                   as="select"
                   name="Id_Medcin"
                   className="block w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFieldValue("Id_Medcin", value);
+                    setSelectedDoctor(value);
+                    setFieldValue("Id_Heure", "");
+                  }}
                 >
                   <option value="">Select a medcin</option>
                   {medcins.map((medcin) => (
@@ -127,16 +156,33 @@ const GetEmergency = ({ visible, onClose ,accessToken}) => {
                   name="Date"
                   min={new Date().toISOString().split('T')[0]}
                   className="block w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFieldValue("Date", value);
+                    setSelectedDate(value);
+                    setFieldValue("Id_Heure", "");
+                  }}
                 />
                 <ErrorMessage name="Date" component="div" className="text-red-500 text-xs mt-1" />
               </div>
 
               <div>
                 <label className="block mb-2 font-medium">Heure :</label>
-                <Field as="select" name="Id_Heure" className="block w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500">
-                  <option value="">Select an heure</option>
-                  {heures.map((heure) => (
-                    <option key={heure.Id_Heure} value={heure.Id_Heure} >
+                <Field
+                  as="select"
+                  name="Id_Heure"
+                  className="block w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
+                  disabled={!selectedDoctor || !selectedDate}
+                >
+                  <option value="">
+                    {!selectedDoctor || !selectedDate
+                      ? "Please select doctor and date first"
+                      : availableHeures.length === 0
+                      ? "No available hours"
+                      : "Select an hour"}
+                  </option>
+                  {availableHeures.map((heure) => (
+                    <option key={heure.Id_Heure} value={heure.Id_Heure}>
                       {heure.Heure}
                     </option>
                   ))}
@@ -149,6 +195,7 @@ const GetEmergency = ({ visible, onClose ,accessToken}) => {
               Valider
             </button>
           </Form>
+        )}
       </Formik>
     </div>
   );

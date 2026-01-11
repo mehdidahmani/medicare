@@ -6,8 +6,12 @@ import * as Yup from 'yup';
 
 const GetAppointment = ({ visible, onClose, accessToken }) => {
   const [medcins, setMedcins] = useState([]);
-  const [heures, setHeures] = useState([]);
+  const [allHeures, setAllHeures] = useState([]);
+  const [availableHeures, setAvailableHeures] = useState([]);
+  const [bookedAppointments, setBookedAppointments] = useState([]);
   const [error, setError] = useState("");
+  const [selectedDoctor, setSelectedDoctor] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
 
   useEffect(() => {
     axios.get('http://localhost:3001/medcins')
@@ -20,12 +24,39 @@ const GetAppointment = ({ visible, onClose, accessToken }) => {
 
     axios.get('http://localhost:3001/heures')
       .then(response => {
-        setHeures(response.data);
+        setAllHeures(response.data);
+        setAvailableHeures(response.data);
       })
       .catch(error => {
         console.error('Error fetching heures:', error);
       });
+
+    axios.get('http://localhost:3001/rendezvous')
+      .then(response => {
+        setBookedAppointments(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching appointments:', error);
+      });
   }, []);
+
+  useEffect(() => {
+    if (selectedDoctor && selectedDate) {
+      const bookedHours = bookedAppointments
+        .filter(apt =>
+          apt.Id_Medcin == selectedDoctor &&
+          apt.Date === selectedDate
+        )
+        .map(apt => apt.Id_Heure);
+
+      const available = allHeures.filter(
+        heure => !bookedHours.includes(heure.Id_Heure)
+      );
+      setAvailableHeures(available);
+    } else {
+      setAvailableHeures(allHeures);
+    }
+  }, [selectedDoctor, selectedDate, allHeures, bookedAppointments]);
 
   const initialValues = {
     Id_Medcin: 1,
@@ -91,60 +122,81 @@ const GetAppointment = ({ visible, onClose, accessToken }) => {
       )}
 
       <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={onSubmit}>
-        <Form className="w-full max-w-md p-4 bg-white rounded-lg mx-auto mt-20">
-          <img src={logoImage} alt="logo" className="w-28 h-auto mx-auto mb-8" />
+        {({ values, setFieldValue }) => (
+          <Form className="w-full max-w-md p-4 bg-white rounded-lg mx-auto mt-20">
+            <img src={logoImage} alt="logo" className="w-28 h-auto mx-auto mb-8" />
 
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block mb-2 font-medium">Medcin :</label>
-              <Field
-                as="select"
-                name="Id_Medcin"
-                className="block w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
-              >
-                <option value="">Select a medcin</option>
-                {medcins.map((medcin) => (
-                  <option key={medcin.Id_Medcin} value={medcin.Id_Medcin}>
-                    {medcin.Nom}
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label className="block mb-2 font-medium">Medcin :</label>
+                <Field
+                  as="select"
+                  name="Id_Medcin"
+                  className="block w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFieldValue("Id_Medcin", value);
+                    setSelectedDoctor(value);
+                    setFieldValue("Id_Heure", "");
+                  }}
+                >
+                  <option value="">Select a medcin</option>
+                  {medcins.map((medcin) => (
+                    <option key={medcin.Id_Medcin} value={medcin.Id_Medcin}>
+                      {medcin.Nom}
+                    </option>
+                  ))}
+                </Field>
+                <ErrorMessage name="Id_Medcin" component="div" className="text-red-500 text-xs mt-1" />
+              </div>
+
+              <div>
+                <label className="block mb-2 font-medium">Date Du rendez vous:</label>
+                <Field
+                  type="date"
+                  name="Date"
+                  min={new Date().toISOString().split('T')[0]}
+                  className="block w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFieldValue("Date", value);
+                    setSelectedDate(value);
+                    setFieldValue("Id_Heure", "");
+                  }}
+                />
+                <ErrorMessage name="Date" component="div" className="text-red-500 text-xs mt-1" />
+              </div>
+
+              <div>
+                <label className="block mb-2 font-medium">Heure :</label>
+                <Field
+                  as="select"
+                  name="Id_Heure"
+                  className="block w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
+                  disabled={!selectedDoctor || !selectedDate}
+                >
+                  <option value="">
+                    {!selectedDoctor || !selectedDate
+                      ? "Please select doctor and date first"
+                      : availableHeures.length === 0
+                      ? "No available hours"
+                      : "Select an hour"}
                   </option>
-                ))}
-              </Field>
-              <ErrorMessage name="Id_Medcin" component="div" className="text-red-500 text-xs mt-1" />
+                  {availableHeures.map((heure) => (
+                    <option key={heure.Id_Heure} value={heure.Id_Heure}>
+                      {heure.Heure}
+                    </option>
+                  ))}
+                </Field>
+                <ErrorMessage name="Id_Heure" component="div" className="text-red-500 text-xs mt-1" />
+              </div>
             </div>
 
-            <div>
-              <label className="block mb-2 font-medium">Date Du rendez vous:</label>
-              <Field
-                type="date"
-                name="Date"
-                min={new Date().toISOString().split('T')[0]}
-                className="block w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
-              />
-              <ErrorMessage name="Date" component="div" className="text-red-500 text-xs mt-1" />
-            </div>
-
-            <div>
-              <label className="block mb-2 font-medium">Heure :</label>
-              <Field 
-                as="select" 
-                name="Id_Heure" 
-                className="block w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
-              >
-                <option value="">Select an heure</option>
-                {heures.map((heure) => (
-                  <option key={heure.Id_Heure} value={heure.Id_Heure}>
-                    {heure.Heure}
-                  </option>
-                ))}
-              </Field>
-              <ErrorMessage name="Id_Heure" component="div" className="text-red-500 text-xs mt-1" />
-            </div>
-          </div>
-
-          <button type="submit" className="block w-full mt-4 px-4 py-2 bg-teal-400 text-white font-semibold rounded hover:bg-teal-500 focus:outline-none focus:bg-teal-500">
-            Valider
-          </button>
-        </Form>
+            <button type="submit" className="block w-full mt-4 px-4 py-2 bg-teal-400 text-white font-semibold rounded hover:bg-teal-500 focus:outline-none focus:bg-teal-500">
+              Valider
+            </button>
+          </Form>
+        )}
       </Formik>
     </div>
   );
