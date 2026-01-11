@@ -7,6 +7,7 @@ import * as Yup from 'yup';
 const GetEmergency = ({ visible, onClose ,accessToken}) => {
   const [medcins, setMedcins] = useState([]);
   const [heures, setHeures] = useState([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     // Fetch medcins
@@ -44,9 +45,9 @@ const GetEmergency = ({ visible, onClose ,accessToken}) => {
   };
 
   const validationSchema = Yup.object().shape({
-    Id_Medcin: Yup.number().required(),
-    Date: Yup.string().required(),
-    Id_Heure: Yup.number().required(),
+    Id_Medcin: Yup.number().required('Please select a doctor').typeError('Please select a doctor'),
+    Date: Yup.string().required('Please select a date'),
+    Id_Heure: Yup.number().required('Please select a time slot').typeError('Please select a time slot'),
     Id_Patient:Yup.number(),
     En_Urgence: Yup.boolean(),
   });
@@ -57,7 +58,7 @@ const GetEmergency = ({ visible, onClose ,accessToken}) => {
     if (e.target.id === 'closingArea') onClose();
   };
   const onSubmit = (values) => {
-
+    setError("");
     axios.post("http://localhost:3001/rendezvous", values, {
       headers: {
         'Content-Type': 'application/json',
@@ -73,7 +74,11 @@ const GetEmergency = ({ visible, onClose ,accessToken}) => {
         }, 2000);
       })
       .catch(error => {
-        console.error('Form submission error:', error);
+        if (error.response && error.response.data && error.response.data.error) {
+          setError(error.response.data.error);
+        } else {
+          setError("An error occurred while booking the emergency appointment");
+        }
       });
   };
 
@@ -84,6 +89,12 @@ const GetEmergency = ({ visible, onClose ,accessToken}) => {
           <div className="bg-white p-4 rounded text-center">
             <p className="text-green-600 font-semibold text-xl">Booked successfully</p>
           </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <p>{error}</p>
         </div>
       )}
 
@@ -114,6 +125,7 @@ const GetEmergency = ({ visible, onClose ,accessToken}) => {
                 <Field
                   type="date"
                   name="Date"
+                  min={new Date().toISOString().split('T')[0]}
                   className="block w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
                 />
                 <ErrorMessage name="Date" component="div" className="text-red-500 text-xs mt-1" />

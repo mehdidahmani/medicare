@@ -36,9 +36,9 @@ const GetAppointment = ({ visible, onClose, accessToken }) => {
   };
 
   const validationSchema = Yup.object().shape({
-    Id_Medcin: Yup.number().required(),
-    Date: Yup.string().required(),
-    Id_Heure: Yup.number().required(),
+    Id_Medcin: Yup.number().required('Please select a doctor').typeError('Please select a doctor'),
+    Date: Yup.string().required('Please select a date'),
+    Id_Heure: Yup.number().required('Please select a time slot').typeError('Please select a time slot'),
     Id_Patient: Yup.number(),
     En_Urgence: Yup.boolean(),
   });
