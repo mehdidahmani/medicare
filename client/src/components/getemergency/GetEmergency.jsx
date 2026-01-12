@@ -172,7 +172,6 @@ const GetEmergency = ({ visible, onClose ,accessToken}) => {
                   as="select"
                   name="Id_Heure"
                   className="block w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
-                  disabled={!selectedDoctor || !selectedDate}
                 >
                   <option value="">
                     {!selectedDoctor || !selectedDate
