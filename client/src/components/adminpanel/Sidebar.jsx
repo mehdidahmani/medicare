@@ -64,6 +64,7 @@ const Array1=[
  {"text":"Patient",path:"/admin/patients"},
  {"text":"Appointments",path:"/admin/rendezvous"},
  {"text":"Consultations",path:"/admin/consultations"},
+ {"text":"Time Slots",path:"/admin/timeslots"},
 ]
 
 export default function Sidebar({ open, handleDrawerClose }) {

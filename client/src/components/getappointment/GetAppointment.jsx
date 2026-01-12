@@ -44,7 +44,7 @@ const GetAppointment = ({ visible, onClose, accessToken }) => {
     if (selectedDoctor && selectedDate) {
       const bookedHours = bookedAppointments
         .filter(apt =>
-          apt.Id_Medcin == selectedDoctor &&
+          apt.Id_Medcin === parseInt(selectedDoctor) &&
           apt.Date === selectedDate
         )
         .map(apt => apt.Id_Heure);
