@@ -7,16 +7,21 @@
   padding: 0;
   margin: 0;
   scroll-behavior: smooth;
-
 }
 
 body {
   background: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
   color: unset;
   text-decoration: none;
+  transition: all 0.3s ease;
 }
 
 .animated__bg {
@@ -29,7 +34,7 @@ a {
 }
 
 .gradient__text {
-  background: var(--gradient-text);
+  background: linear-gradient(to right, #14b8a6, #06b6d4);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -50,9 +55,47 @@ a {
 @keyframes scale-up-center {
   0% {
     transform: scale(0.5);
+    opacity: 0;
   }
   100% {
     transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.6s ease-out;
+}
+
+@layer utilities {
+  .shadow-3xl {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   }
 }
 

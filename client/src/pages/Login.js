@@ -30,28 +30,67 @@ const Login = () => {
   }
 
   return (
-    <div className="w-auto h-auto fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-1.5 border border-black rounded-md px-10 flex flex-col items-center bg-white justify-center ">
-      <img src={logoImage} alt="logo" className="w-28 h-auto mt-4 mx-auto" />
-      <div className="w-auto h-auto rounded-md px-10 flex flex-col items-center bg-white mt-10">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-teal-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 transform transition-all duration-300 hover:shadow-3xl">
+        <div className="flex justify-center mb-8">
+          <img src={logoImage} alt="logo" className="w-32 h-auto drop-shadow-lg" />
+        </div>
+
+        <h2 className="text-3xl font-bold text-center text-gray-900 mb-2">Welcome Back</h2>
+        <p className="text-center text-gray-600 mb-8">Sign in to your account</p>
+
         {error && (
-          <div className="text-red-500 mb-4">{error}</div>
+          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg animate-pulse">
+            <p className="font-medium">{error}</p>
+          </div>
         )}
-        <input
-          type="text"
-          placeholder="Numero telephone"
-          value={Num_Tel}
-          onChange={(event) => setNum_Tel(event.target.value)}
-          className="block w-64 px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 mb-5"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          className="block w-64 px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 mb-5"
-        />
-        <button onClick={login} className="bg-teal-400 px-4 py-2 border border-black hover:bg-red-700 hover:text-white rounded-lg mb-2 mt-3 w-64">Login</button>
-        <button onClick={redirect} className="bg-teal-400 px-4 py-2 border border-black hover:bg-red-700 hover:text-white rounded-lg mb-4 w-64">Sign Up</button>
+
+        <div className="space-y-5">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+            <input
+              type="text"
+              placeholder="Enter your phone number"
+              value={Num_Tel}
+              onChange={(event) => setNum_Tel(event.target.value)}
+              className="block w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all duration-300"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="block w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all duration-300"
+            />
+          </div>
+
+          <button
+            onClick={login}
+            className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
+          >
+            Login
+          </button>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white text-gray-500 font-medium">Don't have an account?</span>
+            </div>
+          </div>
+
+          <button
+            onClick={redirect}
+            className="w-full bg-white border-2 border-teal-500 text-teal-600 hover:bg-teal-50 font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300"
+          >
+            Sign Up
+          </button>
+        </div>
       </div>
     </div>
   );
